@@ -137,12 +137,3 @@ sudo apt install john
 
 Ninguno de estos paquetes es instalado por `install.sh` (la captura no los
 necesita). Se documentan aquí por completitud.
-
-## Referencias
-
-- M. Marlinspike & D. Hulton, *"Defeating PPTP VPNs and WPA2 Enterprise with
-  MS-CHAPv2"*, DEFCON 20 (2012). [Vídeo](https://www.youtube.com/watch?v=k6oZsy7Pe-Q).
-- B. Antoniewicz, J. Wright, *FreeRADIUS-WPE*. Original
-  [README de Joshua Wright](https://www.willhackforsushi.com/?page_id=37).
-- RFC 2759 — Microsoft PPP CHAP Extensions, Version 2.
-- RFC 5281 — Extensible Authentication Protocol Tunneled TLS (PEAP fase 2).
