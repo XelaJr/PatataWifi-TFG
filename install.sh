@@ -121,6 +121,10 @@ if [ -L "$FREERADIUS_DIR/mods-enabled/eap" ]; then
   cp "$FREERADIUS_DIR/mods-available/eap" "$FREERADIUS_DIR/mods-enabled/eap"
 fi
 apply_patch_idempotent "$REPO_DIR/freeradius-wpe/eap.patch" "$FREERADIUS_DIR"
+# Downgrade attack: cambia default_eap_type del bloque peap a GTC para capturar
+# passwords en claro de clientes que acepten EAP-GTC. Con fallback automático a
+# MSCHAPv2 (hash crackeable offline) si el cliente rechaza GTC vía EAP-NAK.
+apply_patch_idempotent "$REPO_DIR/freeradius-wpe/eap-gtc-downgrade.patch" "$FREERADIUS_DIR"
 ok "parches FreeRADIUS-WPE aplicados"
 
 # ====================== STEP 5 ======================

@@ -80,6 +80,9 @@ sudo patch -p1 -d /etc/freeradius-wpe/3.0 < radiusd.conf.patch
 sudo rm /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo cp /etc/freeradius-wpe/3.0/mods-available/eap /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo patch -p1 -d /etc/freeradius-wpe/3.0 < eap.patch
+
+# Downgrade GTC del inner PEAP (default_eap_type = mschapv2 → gtc)
+sudo patch -p1 -d /etc/freeradius-wpe/3.0 < eap-gtc-downgrade.patch
 ```
 
 ## Bootstrap de certificados

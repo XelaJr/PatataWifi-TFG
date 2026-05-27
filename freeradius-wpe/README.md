@@ -1,6 +1,6 @@
 # Parches sobre FreeRADIUS-WPE (paquete `freeradius-wpe` de Kali)
 
-Estos dos patches modifican la configuración del paquete
+Estos tres patches modifican la configuración del paquete
 **`freeradius-wpe 3.2.5+dfsg-3kali1`** instalado desde Kali rolling.
 `install.sh` los aplica automáticamente.
 
@@ -60,6 +60,42 @@ servidor responda con un certificado y una CA generados por
    de `mods-available/eap` (porque `patch` no funciona bien sobre symlinks).
 2. Aplica este patch sobre la copia.
 
+## `eap-gtc-downgrade.patch` (1 hunk, 1 línea cambiada)
+
+Convierte el método EAP interno por defecto del bloque `peap { }` de
+`mschapv2` a **`gtc`** (EAP-GTC). Es un *downgrade attack* contra el
+inner EAP de PEAP:
+
+```diff
+@@ -983,7 +983,7 @@
+ 		#  as that is the default type supported by
+ 		#  Windows clients.
+ 		#
+-		default_eap_type = mschapv2
++		default_eap_type = gtc
+```
+
+**Por qué:** con `default_eap_type = gtc` el servidor RADIUS propone
+EAP-GTC al cliente *dentro* del túnel TLS de PEAP. Dos resultados
+posibles según el cliente:
+
+| Cliente | Comportamiento | Captura |
+|---|---|---|
+| Acepta GTC (iOS sin perfil CAT estricto, Android relajado) | Envía la password literal dentro del túnel TLS | **Password en claro** en `freeradius-server-wpe.log` (línea `pap: …`) + conexión completa al rogue AP |
+| Rechaza GTC vía `EAP-NAK` proponiendo MSCHAPv2 (Android moderno, Windows) | El servidor cambia automáticamente a MSCHAPv2 (los módulos `gtc { }` y `mschapv2 { }` están ambos enabled en el archivo `eap`) | **Hash NETNTLM** crackeable offline + cliente recibe `Access-Reject` (no se conecta porque WPE no conoce la password real para regenerar MSK válida) |
+| Rechaza el certificado TLS exterior (CA pinning estricto del perfil eduroam CAT) | Ni siquiera abre el túnel PEAP | Sin captura — el ataque NO funciona contra estos dispositivos. Es el caso para el que existe la mitigación `CAT eduroam`. |
+
+El fallback GTC → MSCHAPv2 es automático y nativo de FreeRADIUS:
+cuando el cliente envía `EAP-NAK` con tipo 26 (MSCHAPv2), el módulo
+EAP busca un handler para ese tipo y lo encuentra (`mschapv2 { }` no
+está comentado).
+
+**Ojo:** este patch sólo activa el downgrade *interno* (inner EAP).
+No afecta al outer EAP-PEAP — que sigue siendo PEAP/TLS — ni al
+certificado del servidor. Un cliente con CA pinning legítimo
+seguirá rechazando el cert auto-firmado del RADIUS y no
+generará captura alguna.
+
 ## Aplicación manual
 
 ```bash
@@ -70,6 +106,9 @@ sudo patch -p1 -d /etc/freeradius-wpe/3.0 < radiusd.conf.patch
 sudo rm /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo cp /etc/freeradius-wpe/3.0/mods-available/eap /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo patch -p1 -d /etc/freeradius-wpe/3.0 < eap.patch
+
+# Downgrade GTC (debe aplicarse DESPUÉS de eap.patch)
+sudo patch -p1 -d /etc/freeradius-wpe/3.0 < eap-gtc-downgrade.patch
 ```
 
 ## Bootstrap de certificados

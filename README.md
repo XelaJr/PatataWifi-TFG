@@ -24,8 +24,8 @@ entrega credenciales corporativas al servidor RADIUS de su propia institución a
 través de un túnel TLS. Si el cliente no valida correctamente el certificado
 del servidor RADIUS (caso muy común en dispositivos personales mal configurados),
 un atacante puede levantar un punto de acceso con el mismo SSID y un servidor
-RADIUS bajo su control, capturando el handshake MSCHAPv2 que contiene las
-credenciales del usuario en una forma susceptible de ataque offline.
+RADIUS bajo su control, capturando las credenciales del usuario en una forma
+susceptible de uso directo o de ataque offline.
 
 Este repositorio convierte una Raspberry Pi 5 limpia en un laboratorio
 auto-arrancable que materializa ese escenario sobre dos radios físicas: la
@@ -35,6 +35,17 @@ AWUS036ACM (MT7612U) levanta el AP malicioso `eduroam-tfg` con
 (*cleanup → mgmt → attack*) se orquesta vía tres servicios `systemd` que
 arrancan ~30 s tras el POST.
 
+El RADIUS está configurado con **downgrade attack a EAP-GTC** en el inner
+PEAP (ver [`docs/arquitectura.md`](docs/arquitectura.md) §5). Resultado:
+
+- Clientes que aceptan GTC (iOS sin perfil CAT estricto) → **password en
+  claro** capturada + conexión completa al rogue AP.
+- Clientes que rechazan GTC (Android moderno) → fallback automático a
+  MSCHAPv2 → **hash NETNTLM** capturado, crackeable offline.
+- Clientes que rechazan el certificado TLS exterior (eduroam CAT con CA
+  pinning) → ninguna captura. Es la única configuración cliente que mitiga
+  por completo el ataque.
+
 ## Hardware probado
 
 | Componente | Modelo | Notas |
@@ -42,7 +53,9 @@ arrancan ~30 s tras el POST.
 | Plataforma | Raspberry Pi 5 (8 GB) | aarch64 / kernel 6.12.x |
 | Radio interna | Broadcom BCM4345C0 (wlan0) | usa `firmware-brcm80211` |
 | Radio externa | Alfa AWUS036ACM (wlan1) | MediaTek MT7612U, `firmware-mediatek` |
-| Cliente víctima (validado) | iPhone con iOS 17/18 | exige certificado válido — se valida la captura del intento de autenticación, no la conexión completa |
+| Cliente víctima (validado) | iPhone con iOS 17/18/25 | acepta GTC sin perfil CAT — password en claro capturada + conexión completa al rogue AP |
+| Cliente víctima (validado) | iPad / tablet con iOS 25 | mismo flujo que iPhone (GTC en claro) |
+| Cliente víctima (validado) | Android con HyperOS / MIUI | rechaza GTC y cae a MSCHAPv2 → hash NETNTLM capturado, sin conexión |
 
 > El AWUS036ACM se requiere porque la radio interna no permite, sobre el driver
 > Broadcom, el modo AP con WPA2-Enterprise + multi-BSSID simultáneo. Ver
@@ -110,7 +123,8 @@ Detalles completos del flujo, motivaciones de diseño y diagrama extendido en
 |---|---|
 | Despliegue sobre Pi 5 8 GB + AWUS036ACM | Validado |
 | Arranque automático tras reboot | Validado (~30 s) |
-| Captura de hash MSCHAPv2 desde cliente iPhone iOS 17/18 | Validado (intento de autenticación con cert rechazado por el cliente) |
+| Captura de password en claro vía EAP-GTC desde iOS 25 (iPhone + tablet) | Validado (líneas `pap:` en `freeradius-server-wpe.log`) |
+| Captura de hash NETNTLM vía fallback MSCHAPv2 desde Android/HyperOS | Validado (líneas `mschap:` en `freeradius-server-wpe.log`) |
 | Despliegue en armv7 (Pi 3/4) | **No** validado — `install.sh` avisa pero no aborta |
 | Despliegue en otras distros (Ubuntu, Kali, Debian estable) | **No** validado |
 

@@ -78,6 +78,7 @@ sudo patch -p1 -d /etc/freeradius-wpe/3.0 \
 sudo rm /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo cp /etc/freeradius-wpe/3.0/mods-available/eap /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo patch -p1 -d /etc/freeradius-wpe/3.0 < freeradius-wpe/eap.patch
+sudo patch -p1 -d /etc/freeradius-wpe/3.0 < freeradius-wpe/eap-gtc-downgrade.patch
 
 # [5/11] Bootstrap de certificados
 sudo make -C /etc/freeradius-wpe/3.0/certs bootstrap
@@ -147,11 +148,21 @@ sudo tail -F /var/log/tfg-cleanup.log /var/log/tfg-mgmt.log /var/log/tfg-attack.
 ```
 
 Con el dispositivo víctima a un par de metros, intente conectarlo a
-`eduroam-tfg`. El cliente rechazará el certificado del RADIUS (no es de
-ninguna CA conocida), pero **el intento de autenticación se completa lo
-suficiente como para que el hash MSCHAPv2 quede capturado** en el log del
-servidor — ese es el punto del ataque. Para extraer y analizar los hashes
-offline, ver [`docs/analisis-offline.md`](docs/analisis-offline.md).
+`eduroam-tfg`. Tres comportamientos posibles según el cliente:
+
+- **iOS sin perfil CAT** (probado en iPhone/iPad iOS 25): acepta el
+  cert sin avisar (o el usuario lo acepta en el warning), acepta GTC
+  dentro del túnel y envía la **password en claro**, que queda en el
+  log como `pap: <user> / <password>`. Además, **completa la conexión**
+  al rogue AP.
+- **Android moderno / HyperOS / Windows con perfil eduroam**: acepta el
+  cert pero rechaza GTC con `EAP-NAK`; el servidor cae automáticamente
+  a MSCHAPv2 y captura el **hash NETNTLM** (línea `mschap:`). El
+  cliente NO se conecta, pero la credencial queda en disco para crack
+  offline — ver [`docs/analisis-offline.md`](docs/analisis-offline.md).
+- **Cliente con CA pinning estricto** (perfil eduroam CAT con CA
+  legítima): rechaza el cert auto-firmado en el outer PEAP. No abre el
+  túnel. **Sin captura.** Es la mitigación recomendada por eduroam.
 
 ## Personalización
 

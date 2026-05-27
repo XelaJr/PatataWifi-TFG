@@ -1,11 +1,41 @@
-# Análisis offline de los hashes capturados
+# Análisis offline de las credenciales capturadas
 
-> El laboratorio captura el handshake **PEAP-MSCHAPv2** que el cliente
-> intercambia con el servidor RADIUS atacante. Ese handshake contiene un
-> `Challenge` y una `Response` derivada de la NT-hash de la contraseña del
-> usuario, susceptible de ataque offline. La debilidad criptográfica que lo
-> permite fue documentada por **Moxie Marlinspike y David Hulton en DEFCON 20
-> (2012)**, *"Defeating PPTP VPNs and WPA2 Enterprise with MS-CHAPv2"*.
+El laboratorio captura **dos tipos de credenciales** dependiendo del
+comportamiento del cliente en el inner EAP de PEAP (ver
+[`arquitectura.md`](arquitectura.md) §5 — downgrade GTC):
+
+| Cliente | Captura | Análisis |
+|---|---|---|
+| Acepta EAP-GTC | **Password en claro** (línea `pap:` en el log) | Ninguno — ya tienes la credencial |
+| Rechaza GTC, cae a MSCHAPv2 | **Hash NETNTLM** (línea `mschap:` en el log) | Crack offline (este documento) |
+| Rechaza el cert TLS exterior | Nada | El ataque NO funciona contra este cliente |
+
+Este documento cubre el **segundo caso** — recuperar la contraseña a
+partir del hash MSCHAPv2 capturado. El primer caso es trivial: la
+password ya está en el log.
+
+> La debilidad criptográfica del MSCHAPv2 fue documentada por
+> **Moxie Marlinspike y David Hulton en DEFCON 20 (2012)**,
+> *"Defeating PPTP VPNs and WPA2 Enterprise with MS-CHAPv2"*.
+
+## Credenciales en claro (caso EAP-GTC)
+
+Si el cliente aceptó GTC, su password aparece literalmente en el log:
+
+```
+pap: Wed May 27 19:14:17 2026
+    username: alice@uloyola.es
+    password: Passw0rd2026
+```
+
+Filtrar todas las capturas GTC del log:
+
+```bash
+sudo awk '/^pap:/,/^$/' /var/log/freeradius-wpe/freeradius-server-wpe.log
+```
+
+No requiere paso adicional. Para el TFG, conviene censurar (`REPLACE_ME`)
+estas líneas antes de incluir el log en el documento final.
 
 ## Formato del hash capturado
 

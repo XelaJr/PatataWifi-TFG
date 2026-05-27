@@ -36,25 +36,32 @@ el operador del laboratorio usa el de gestión).
         │  ◄───────────────     │  │ Driver: nl80211                    │  │
         │  (cert "Example Inc.")│  └─────────────────┬──────────────────┘  │
         │                       │                    ↓ RADIUS              │
-        │  Cliente rechaza      │  ┌────────────────────────────────────┐  │
-        │  certificado          │  │ FreeRADIUS-WPE 3.2.5  (Kali pkg)   │  │
-        │  ───────────────────► │  │ PEAP/MSCHAPv2 inner handler        │  │
-        │       (mensaje TLS    │  └─────────────────┬──────────────────┘  │
-        │        alert: 51)     │                    ↓                     │
+        │  Cliente acepta cert  │  ┌────────────────────────────────────┐  │
+        │  o lo rechaza         │  │ FreeRADIUS-WPE 3.2.5  (Kali pkg)   │  │
+        │  ───────────────────► │  │ Inner: GTC → fallback MSCHAPv2     │  │
+        │                       │  └─────────────────┬──────────────────┘  │
+        │                       │                    ↓                     │
         │                       │  /var/log/freeradius-wpe/                │
         │                       │  freeradius-server-wpe.log               │
         │                       │  ───────────────────────────────         │
-        │                       │  username::challenge::response::ntresp   │
-        │                       │  (formato hashcat -m 5500 / asleap)      │
+        │                       │  pap: alice@uloyola.es / <pwd>   ← GTC   │
+        │                       │  mschap: bob@uloyola.es / <hash> ← NAK   │
         │                       └──────────────────────────────────────────┘
 ```
 
-Aunque el cliente rechaza la conexión (cert no firmado por ninguna CA que
-conozca), **el `Response` MSCHAPv2 viaja antes de que el cliente decida
-abortar el handshake exterior** porque el cliente envía sus credenciales
-dentro del túnel TLS de PEAP fase 2 una vez aceptado el server hello externo
-(o, en clientes mal configurados, sin verificar siquiera el certificado).
-Eso es lo que esto captura.
+Hay tres escenarios posibles según cómo gestione el cliente el cert TLS y
+el inner EAP propuesto por el RADIUS:
+
+1. **Cliente acepta cert + acepta GTC** (iOS sin perfil CAT estricto):
+   credenciales en claro capturadas + conexión completa al rogue AP
+   (`pap: <user> / <password>` en el log WPE).
+2. **Cliente acepta cert + rechaza GTC con NAK** (Android moderno):
+   fallback automático a MSCHAPv2 → hash NETNTLM capturado, crackeable
+   offline (`mschap: <user> / <hash>`). El cliente recibe `Access-Reject`
+   y NO se conecta — pero la credencial queda en disco.
+3. **Cliente rechaza el cert TLS exterior** (eduroam CAT con CA pinning):
+   ningún paquete EAP interno llega al servidor → **sin captura**. Es
+   la única configuración que mitiga el ataque.
 
 ## Decisiones de diseño
 
@@ -142,7 +149,42 @@ de [`w1.fi`](https://w1.fi/releases/), verifica su sha256
 aplica el patch `hostapd-2.6-config.patch` (que sólo descomenta
 `CONFIG_LIBNL32=y` y `CONFIG_IEEE80211N=y`), y compila con `make -j$(nproc)`.
 
-### 5. PatataWiFi como wrapper de tmux
+### 5. Downgrade attack a EAP-GTC en el inner PEAP
+
+Por defecto el bloque `peap { }` de FreeRADIUS-WPE viene configurado con
+`default_eap_type = mschapv2`. Eso captura **hashes** NETNTLM
+(crackeables offline pero no inmediatos). El patch
+[`freeradius-wpe/eap-gtc-downgrade.patch`](../freeradius-wpe/eap-gtc-downgrade.patch)
+lo cambia a `default_eap_type = gtc`.
+
+Con GTC como tipo inicial:
+
+- El servidor propone EAP-GTC al cliente dentro del túnel TLS.
+- Si el cliente lo acepta (caso común en iOS sin perfil CAT estricto)
+  envía la password **literal**. WPE la conoce → genera
+  `Access-Accept` con MSK válida → el cliente completa el 4-way
+  handshake WPA2 y queda asociado al rogue AP, abriendo la puerta a
+  MITM total.
+- Si el cliente lo rechaza con `EAP-NAK` (Android moderno, Windows
+  con perfil eduroam), FreeRADIUS **automáticamente** cambia al inner
+  EAP propuesto por el cliente — típicamente MSCHAPv2 — porque los
+  módulos `gtc { }` y `mschapv2 { }` están ambos enabled. Resultado:
+  hash NETNTLM capturado, idéntico al escenario previo al downgrade.
+
+El fallback es transparente y no requiere reintento por parte del
+cliente: ocurre dentro de la misma sesión EAP. Para el operador del
+laboratorio significa **mejorar el caso peor (hash crackeable) con
+un caso mejor (password en claro) sin perder el comportamiento
+anterior**.
+
+Limitación importante: el downgrade afecta sólo al inner EAP,
+**no al outer PEAP/TLS**. Si el cliente rechaza el certificado del
+RADIUS antes de abrir el túnel (CA pinning estricto del perfil
+eduroam CAT), no hay nada que capturar — ni hash ni password. El
+ataque queda neutralizado por completo. Esta es, por diseño, la
+mitigación recomendada en la documentación oficial de eduroam.
+
+### 6. PatataWiFi como wrapper de tmux
 
 PatataWiFi orquesta `hostapd` + `dnsmasq` + `radiusd` + `tail -f` de los logs
 en una sesión `tmux` con 5 paneles. Permite operación interactiva durante el
@@ -160,6 +202,6 @@ background" — `tmux -d` desacopla la sesión del proceso padre, así que
 | Config wlan0 | `hostapd-mgmt/mgmt.conf` | `/root/patatawifi/hostapd-mgmt/mgmt.conf` |
 | Scripts PatataWiFi | Upstream `jesux/PatataWiFiEnterprise/files/` | `/root/patatawifi/*.sh` (3 archivos parcheados) |
 | Binario hostapd | Construido desde `w1.fi/releases/hostapd-2.6.tar.gz` | `/root/patatawifi/hostapd/hostapd` |
-| Config FreeRADIUS-WPE | Paquete `freeradius-wpe` (Kali) | `/etc/freeradius-wpe/3.0/` (con 2 parches) |
+| Config FreeRADIUS-WPE | Paquete `freeradius-wpe` (Kali) | `/etc/freeradius-wpe/3.0/` (con 3 parches: radiusd.conf, eap, eap-gtc-downgrade) |
 | Certificados RADIUS | Generados por `make bootstrap` | `/etc/freeradius-wpe/3.0/certs/` |
 | Symlink lazo | — | `/root/patatawifi/radiuscfg/default → /etc/freeradius-wpe/3.0` |

@@ -1,0 +1,11 @@
+--- a/mods-enabled/eap
++++ b/mods-enabled/eap
+@@ -983,7 +983,7 @@
+ 		#  as that is the default type supported by
+ 		#  Windows clients.
+ 		#
+-		default_eap_type = mschapv2
++		default_eap_type = gtc
+ 
+ 		#  The PEAP module also has these configuration
+ 		#  items, which are the same as for TTLS.
