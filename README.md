@@ -140,9 +140,6 @@ Detalles completos del flujo, motivaciones de diseño y diagrama extendido en
   [Joshua Wright](https://github.com/joswr1ght) y mantenida en sus revisiones
   modernas por el proyecto Kali. Empaquetada en `kali-rolling` como
   `freeradius-wpe 3.2.5+dfsg-3kali1`.
-- [**Moxie Marlinspike & David Hulton — DEFCON 20 (2012)**](https://www.youtube.com/watch?v=k6oZsy7Pe-Q),
-  *Defeating PPTP VPNs and WPA2 Enterprise with MS-CHAPv2*. La base teórica
-  detrás de la captura/recuperación que motiva este laboratorio.
 
 ## Contribuir
 
