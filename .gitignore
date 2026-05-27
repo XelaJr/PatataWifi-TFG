@@ -1,0 +1,68 @@
+# Build artifacts
+**/hostapd-2.6/
+**/hostapd-2.10/
+**/hostapd-mana/
+**/hostapd/hostapd
+*.o
+*.d
+
+# Tarballs (downloaded by install.sh)
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+
+# FreeRADIUS bootstrap-generated material (regenerated on install)
+**/certs/*.pem
+**/certs/*.key
+**/certs/*.crt
+**/certs/*.csr
+**/certs/*.p12
+**/certs/*.der
+**/certs/*.crl
+**/certs/index.txt*
+**/certs/serial*
+**/certs/passwords.mk
+**/certs/01.pem
+**/certs/02.pem
+**/certs/user@*
+
+# Runtime artifacts
+**/logs/
+*.log
+*.pcap
+*.cap
+*.hccapx
+*.pid
+*.lease*
+/tmp/
+
+# Author's local backups (never commit)
+*.backup
+*.backup_*
+*.bak
+*.orig
+*.dpkg-old
+*.dpkg-dist
+*.dpkg-new
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Secrets / env
+.env
+.env.*
+*.token
+secrets/
+
+# Brief privado del autor (contiene credenciales y notas internas — NO publicar)
+BRIEF.md
+
+# Configuración local de Claude Code (allowlist de permisos del autor)
+.claude/
+.claude/settings.local.json

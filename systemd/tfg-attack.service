@@ -1,0 +1,14 @@
+[Unit]
+Description=TFG - Evil Twin eduroam-tfg (wlan1)
+After=tfg-mgmt.service
+Requires=tfg-mgmt.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tfg-attack.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

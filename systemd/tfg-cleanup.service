@@ -1,0 +1,15 @@
+
+[Unit]
+Description=TFG - Cleanup previo al arranque del laboratorio
+After=network.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tfg-cleanup.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

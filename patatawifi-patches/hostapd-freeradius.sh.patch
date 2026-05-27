@@ -1,0 +1,30 @@
+--- a/hostapd-freeradius.sh
++++ b/hostapd-freeradius.sh
+@@ -10,21 +10,21 @@
+ 
+ SESSION='PatataWifi_Hostapd'
+ 
+-wlan_list=("wlan0" "wlan1")
+-mac='00:22:33:44:55:60' # Change me, must end in X0
++wlan_list=("wlan1" "wlan0")
++mac='02:00:00:00:00:00' # Change me, must end in X0
+ channel=6
+ 
+ # WPA-PSK Management Network
+-mgmt_ssid='PatataWiFi_mgmt'
++mgmt_ssid='eduroam-tfg'
+ mgmt_password='patatas333'
+-mgmt_ip=172.31.0.1
++mgmt_ip=10.0.0.1
+ mgmt_netmask=255.255.255.0
+ 
+ # WPA-EAP Virtual networks
+ # Comment to disable
+ # Check AP capabilities of your wlan interface, max virutal AP: iw list | grep -A 2 'valid interface combinations'
+-ssid_list=("WiFi")
+-wlan_ip_list=("10.0.0.1")
++ssid_list=()
++wlan_ip_list=()
+ #ssid_list=("Free WiFi" "🍟")
+ #wlan_ip_list=("10.0.0.1" "10.0.1.1")
+ 

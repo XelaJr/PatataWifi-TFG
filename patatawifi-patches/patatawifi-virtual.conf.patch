@@ -1,0 +1,18 @@
+--- a/hostapd/patatawifi-virtual.conf
++++ b/hostapd/patatawifi-virtual.conf
+@@ -1,6 +1,7 @@
+ 
+ ##### Multiple BSSID #####
+ bss=[VIRTUALINTERFACE]
++bssid=06:00:00:00:00:01
+ ssid=[SSID]
+ country_code=ES
+ 
+@@ -15,5 +16,6 @@
+ 
+ wpa=2
+ wpa_key_mgmt=WPA-EAP
+-wpa_pairwise=TKIP CCMP
++wpa_pairwise=CCMP
+ rsn_pairwise=CCMP
++ieee80211w=1

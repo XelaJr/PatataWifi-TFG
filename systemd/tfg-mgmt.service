@@ -1,0 +1,14 @@
+[Unit]
+Description=TFG Red gestion wlan0
+After=tfg-cleanup.service
+Requires=tfg-cleanup.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tfg-mgmt.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

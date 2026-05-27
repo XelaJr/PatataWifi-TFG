@@ -1,0 +1,29 @@
+--- a/mods-enabled/eap
++++ b/mods-enabled/eap
+@@ -198,7 +198,7 @@
+ 	#
+ 	tls-config tls-common {
+ 		private_key_password = whatever
+-		private_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
++		private_key_file = ${certdir}/server.key
+ 
+ 		#  If Private key & Certificate are located in
+ 		#  the same file, then private_key_file &
+@@ -234,7 +234,7 @@
+ 		#  give advice which will work everywhere.  Instead,
+ 		#  we give general guidelines.
+ 		#
+-		certificate_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
++		certificate_file = ${certdir}/server.pem
+ 
+ 		#  Trusted Root CA list
+ 		#
+@@ -247,7 +247,7 @@
+ 		#  In that case, this CA file should contain
+ 		#  *one* CA certificate.
+ 		#
+-		ca_file = /etc/ssl/certs/ca-certificates.crt
++		ca_file = ${certdir}/ca.pem
+ 
+ 		#
+ 		#  Directory where multiple CAs are stored.  Both
