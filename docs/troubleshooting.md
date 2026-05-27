@@ -84,31 +84,34 @@ sudo systemctl restart tfg-attack
 `tfg-cleanup.sh` ya hace `tmux kill-server` al inicio, así que un `reboot`
 también resuelve esto.
 
-## 4. iPhone: "No se puede conectar a la red" sin diálogo de certificado
+## 4. El cliente da "No se puede conectar" sin mostrar diálogo de certificado
 
-**Síntoma:** el cliente iOS muestra el SSID `eduroam-tfg`, intenta
-conectarse, y rápidamente da un error genérico de tipo "No se puede
-conectar a la red" — **sin mostrar el diálogo "Continuar de todos modos /
+**Síntoma:** el cliente ve el SSID `eduroam-tfg`, intenta conectarse y
+rápidamente da un error genérico de tipo "No se puede conectar a la red" o
+similar — **sin mostrar diálogo del tipo "Continuar de todos modos /
 Cancelar" ante un certificado desconocido**.
 
-**Causa: NO es un bug.** Es el comportamiento esperado de los clientes iOS
-modernos cuando:
-- El SSID `eduroam` (o variante reconocida) tiene un perfil de configuración
-  instalado en el dispositivo con el certificado del RADIUS legítimo
-  fijado (*cert pinning*).
-- O cuando el cliente nunca se ha conectado antes al SSID y la política de
-  seguridad iOS rechaza certificados no firmados por una CA del sistema
+**Causa: NO es un bug.** Es el comportamiento esperado cuando el supplicant
+del cliente está configurado con CA pinning estricto contra una CA distinta
+de la del FreeRADIUS-WPE del laboratorio. Sucede típicamente cuando:
+
+- El cliente tiene un perfil eduroam preinstalado (vía la herramienta
+  oficial *eduroam CAT* o equivalente) que fija el certificado CA legítimo
+  de la institución.
+- O cuando la política de seguridad por defecto del sistema operativo
+  rechaza certificados no firmados por ninguna CA del almacén del sistema
   sin pedir intervención al usuario.
 
-**Esto no impide la captura.** En logs de FreeRADIUS-WPE se ve la cadena
-EAP-Response + Identity y, dependiendo del estado del cliente, también
-puede aparecer el handshake MSCHAPv2 antes del aborto. Para forzar la
-captura de un cliente que rechaza el cert:
+**Impacto en la captura:** en este escenario el cliente cierra la sesión
+en el outer PEAP/TLS — **antes de abrir el túnel** — y por tanto **no se
+genera ninguna entrada** en `freeradius-server-wpe.log`. El log de
+`hostapd` (vía `journalctl -u tfg-attack`) sí muestra ciclos repetidos de
+`authentication failed - EAP type: 25 (PEAP)` con la MAC del cliente.
 
-- Desinstale del iPhone cualquier perfil de configuración eduroam previo
-  (Ajustes → General → VPN y administración de dispositivos).
-- O use un cliente Android en modo "No validar" (común en configuraciones
-  domésticas y en clientes mal documentados).
+Esta es la mitigación funcionando como se diseñó. Para forzar la captura
+sería necesario relajar la validación de CA en el supplicant del cliente
+(opción típica "No validar" o "Cualquier CA" del menú avanzado de redes),
+lo cual no es realista en un escenario de ataque real.
 
 ## 5. Servicios `tfg-*` no arrancan tras reboot
 

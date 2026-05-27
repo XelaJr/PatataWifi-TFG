@@ -148,21 +148,23 @@ sudo tail -F /var/log/tfg-cleanup.log /var/log/tfg-mgmt.log /var/log/tfg-attack.
 ```
 
 Con el dispositivo víctima a un par de metros, intente conectarlo a
-`eduroam-tfg`. Tres comportamientos posibles según el cliente:
+`eduroam-tfg`. Tres comportamientos posibles según la configuración del
+cliente (no atribuibles al fabricante: dependen del supplicant y del
+perfil eduroam instalado):
 
-- **iOS sin perfil CAT** (probado en iPhone/iPad iOS 25): acepta el
-  cert sin avisar (o el usuario lo acepta en el warning), acepta GTC
-  dentro del túnel y envía la **password en claro**, que queda en el
-  log como `pap: <user> / <password>`. Además, **completa la conexión**
-  al rogue AP.
-- **Android moderno / HyperOS / Windows con perfil eduroam**: acepta el
-  cert pero rechaza GTC con `EAP-NAK`; el servidor cae automáticamente
-  a MSCHAPv2 y captura el **hash NETNTLM** (línea `mschap:`). El
-  cliente NO se conecta, pero la credencial queda en disco para crack
-  offline — ver [`docs/analisis-offline.md`](docs/analisis-offline.md).
-- **Cliente con CA pinning estricto** (perfil eduroam CAT con CA
-  legítima): rechaza el cert auto-firmado en el outer PEAP. No abre el
-  túnel. **Sin captura.** Es la mitigación recomendada por eduroam.
+- **Cliente acepta el cert + acepta EAP-GTC**: envía la **password
+  literal** dentro del túnel TLS. Queda en el log como
+  `pap: <user> / <password>`. Además, **completa la conexión** al
+  rogue AP (porque WPE conoce la password y emite `Access-Accept` con
+  MSK válida).
+- **Cliente acepta el cert + rechaza GTC con `EAP-NAK`**: el servidor
+  cae automáticamente a MSCHAPv2 y captura el **hash NETNTLM** (línea
+  `mschap:`). El cliente recibe `Access-Reject` y NO se conecta, pero
+  la credencial queda en disco para crack offline — ver
+  [`docs/analisis-offline.md`](docs/analisis-offline.md).
+- **Cliente con CA pinning estricto rechaza el cert exterior**: no se
+  abre el túnel PEAP. **Sin captura.** Es la mitigación recomendada
+  por eduroam (perfil CAT con CA legítima).
 
 ## Personalización
 

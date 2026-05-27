@@ -79,11 +79,11 @@ inner EAP de PEAP:
 EAP-GTC al cliente *dentro* del túnel TLS de PEAP. Dos resultados
 posibles según el cliente:
 
-| Cliente | Comportamiento | Captura |
+| Comportamiento del cliente | Qué hace internamente | Captura resultante |
 |---|---|---|
-| Acepta GTC (iOS sin perfil CAT estricto, Android relajado) | Envía la password literal dentro del túnel TLS | **Password en claro** en `freeradius-server-wpe.log` (línea `pap: …`) + conexión completa al rogue AP |
-| Rechaza GTC vía `EAP-NAK` proponiendo MSCHAPv2 (Android moderno, Windows) | El servidor cambia automáticamente a MSCHAPv2 (los módulos `gtc { }` y `mschapv2 { }` están ambos enabled en el archivo `eap`) | **Hash NETNTLM** crackeable offline + cliente recibe `Access-Reject` (no se conecta porque WPE no conoce la password real para regenerar MSK válida) |
-| Rechaza el certificado TLS exterior (CA pinning estricto del perfil eduroam CAT) | Ni siquiera abre el túnel PEAP | Sin captura — el ataque NO funciona contra estos dispositivos. Es el caso para el que existe la mitigación `CAT eduroam`. |
+| Acepta el cert + acepta EAP-GTC | Envía la password literal dentro del túnel TLS | **Password en claro** en `freeradius-server-wpe.log` (línea `pap: …`) + conexión completa al rogue AP (WPE conoce la password → genera MSK válida → 4-way handshake WPA2 completa) |
+| Acepta el cert + rechaza GTC vía `EAP-NAK` proponiendo MSCHAPv2 | El servidor cambia automáticamente a MSCHAPv2 (los módulos `gtc { }` y `mschapv2 { }` están ambos enabled en el archivo `eap`) | **Hash NETNTLM** crackeable offline + cliente recibe `Access-Reject` (WPE no conoce la password real para regenerar MSK válida → el 4-way handshake nunca completa) |
+| CA pinning estricto: rechaza el certificado TLS exterior | Ni siquiera abre el túnel PEAP — abandona en el outer | Sin captura — el ataque NO funciona en este escenario. Es la mitigación recomendada por eduroam (perfil CAT con CA legítima fijada). |
 
 El fallback GTC → MSCHAPv2 es automático y nativo de FreeRADIUS:
 cuando el cliente envía `EAP-NAK` con tipo 26 (MSCHAPv2), el módulo

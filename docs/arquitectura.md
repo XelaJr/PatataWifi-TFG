@@ -52,16 +52,16 @@ el operador del laboratorio usa el de gestión).
 Hay tres escenarios posibles según cómo gestione el cliente el cert TLS y
 el inner EAP propuesto por el RADIUS:
 
-1. **Cliente acepta cert + acepta GTC** (iOS sin perfil CAT estricto):
-   credenciales en claro capturadas + conexión completa al rogue AP
-   (`pap: <user> / <password>` en el log WPE).
-2. **Cliente acepta cert + rechaza GTC con NAK** (Android moderno):
-   fallback automático a MSCHAPv2 → hash NETNTLM capturado, crackeable
-   offline (`mschap: <user> / <hash>`). El cliente recibe `Access-Reject`
-   y NO se conecta — pero la credencial queda en disco.
-3. **Cliente rechaza el cert TLS exterior** (eduroam CAT con CA pinning):
+1. **Cliente acepta cert + acepta GTC**: credenciales en claro
+   capturadas + conexión completa al rogue AP (`pap: <user> / <password>`
+   en el log WPE).
+2. **Cliente acepta cert + rechaza GTC con `EAP-NAK`**: fallback
+   automático del servidor a MSCHAPv2 → hash NETNTLM capturado,
+   crackeable offline (`mschap: <user> / <hash>`). El cliente recibe
+   `Access-Reject` y NO se conecta — pero la credencial queda en disco.
+3. **Cliente con CA pinning estricto rechaza el cert TLS exterior**:
    ningún paquete EAP interno llega al servidor → **sin captura**. Es
-   la única configuración que mitiga el ataque.
+   la única configuración del cliente que mitiga el ataque.
 
 ## Decisiones de diseño
 
@@ -160,16 +160,15 @@ lo cambia a `default_eap_type = gtc`.
 Con GTC como tipo inicial:
 
 - El servidor propone EAP-GTC al cliente dentro del túnel TLS.
-- Si el cliente lo acepta (caso común en iOS sin perfil CAT estricto)
-  envía la password **literal**. WPE la conoce → genera
-  `Access-Accept` con MSK válida → el cliente completa el 4-way
-  handshake WPA2 y queda asociado al rogue AP, abriendo la puerta a
-  MITM total.
-- Si el cliente lo rechaza con `EAP-NAK` (Android moderno, Windows
-  con perfil eduroam), FreeRADIUS **automáticamente** cambia al inner
-  EAP propuesto por el cliente — típicamente MSCHAPv2 — porque los
-  módulos `gtc { }` y `mschapv2 { }` están ambos enabled. Resultado:
-  hash NETNTLM capturado, idéntico al escenario previo al downgrade.
+- Si el cliente lo acepta, envía la password **literal**. WPE la
+  conoce → genera `Access-Accept` con MSK válida → el cliente
+  completa el 4-way handshake WPA2 y queda asociado al rogue AP,
+  abriendo la puerta a MITM total.
+- Si el cliente lo rechaza con `EAP-NAK` proponiendo otro inner EAP,
+  FreeRADIUS **automáticamente** cambia al tipo propuesto — típicamente
+  MSCHAPv2 — porque los módulos `gtc { }` y `mschapv2 { }` están ambos
+  enabled. Resultado: hash NETNTLM capturado, idéntico al escenario
+  previo al downgrade.
 
 El fallback es transparente y no requiere reintento por parte del
 cliente: ocurre dentro de la misma sesión EAP. Para el operador del

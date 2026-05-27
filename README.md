@@ -36,15 +36,17 @@ AWUS036ACM (MT7612U) levanta el AP malicioso `eduroam-tfg` con
 arrancan ~30 s tras el POST.
 
 El RADIUS está configurado con **downgrade attack a EAP-GTC** en el inner
-PEAP (ver [`docs/arquitectura.md`](docs/arquitectura.md) §5). Resultado:
+PEAP (ver [`docs/arquitectura.md`](docs/arquitectura.md) §5). Resultado
+según el comportamiento del cliente:
 
-- Clientes que aceptan GTC (iOS sin perfil CAT estricto) → **password en
-  claro** capturada + conexión completa al rogue AP.
-- Clientes que rechazan GTC (Android moderno) → fallback automático a
-  MSCHAPv2 → **hash NETNTLM** capturado, crackeable offline.
-- Clientes que rechazan el certificado TLS exterior (eduroam CAT con CA
-  pinning) → ninguna captura. Es la única configuración cliente que mitiga
-  por completo el ataque.
+- Cliente que acepta el certificado del RADIUS y acepta EAP-GTC →
+  **password en claro** capturada + conexión completa al rogue AP.
+- Cliente que acepta el certificado pero rechaza GTC vía `EAP-NAK`
+  proponiendo MSCHAPv2 → fallback automático del servidor a MSCHAPv2 →
+  **hash NETNTLM** capturado, crackeable offline.
+- Cliente con CA pinning estricto que rechaza el certificado del RADIUS
+  en el outer PEAP/TLS → no se abre el túnel → **ninguna captura**. Es
+  la única configuración del cliente que mitiga por completo el ataque.
 
 ## Hardware probado
 
@@ -53,9 +55,7 @@ PEAP (ver [`docs/arquitectura.md`](docs/arquitectura.md) §5). Resultado:
 | Plataforma | Raspberry Pi 5 (8 GB) | aarch64 / kernel 6.12.x |
 | Radio interna | Broadcom BCM4345C0 (wlan0) | usa `firmware-brcm80211` |
 | Radio externa | Alfa AWUS036ACM (wlan1) | MediaTek MT7612U, `firmware-mediatek` |
-| Cliente víctima (validado) | iPhone con iOS 17/18/25 | acepta GTC sin perfil CAT — password en claro capturada + conexión completa al rogue AP |
-| Cliente víctima (validado) | iPad / tablet con iOS 25 | mismo flujo que iPhone (GTC en claro) |
-| Cliente víctima (validado) | Android con HyperOS / MIUI | rechaza GTC y cae a MSCHAPv2 → hash NETNTLM capturado, sin conexión |
+| Cliente víctima | Cualquier dispositivo con stack 802.1X/EAP que se asocie a `eduroam-tfg`. El comportamiento concreto (captura GTC plain, fallback MSCHAPv2 o rechazo TLS) depende de la configuración del supplicant y del perfil eduroam instalado, no del fabricante. Pruebas en hardware concreto en curso. |
 
 > El AWUS036ACM se requiere porque la radio interna no permite, sobre el driver
 > Broadcom, el modo AP con WPA2-Enterprise + multi-BSSID simultáneo. Ver
@@ -123,8 +123,9 @@ Detalles completos del flujo, motivaciones de diseño y diagrama extendido en
 |---|---|
 | Despliegue sobre Pi 5 8 GB + AWUS036ACM | Validado |
 | Arranque automático tras reboot | Validado (~30 s) |
-| Captura de password en claro vía EAP-GTC desde iOS 25 (iPhone + tablet) | Validado (líneas `pap:` en `freeradius-server-wpe.log`) |
-| Captura de hash NETNTLM vía fallback MSCHAPv2 desde Android/HyperOS | Validado (líneas `mschap:` en `freeradius-server-wpe.log`) |
+| Captura de password en claro vía EAP-GTC (línea `pap:` en `freeradius-server-wpe.log`) | Validado contra clientes que aceptan GTC |
+| Captura de hash NETNTLM vía fallback MSCHAPv2 (línea `mschap:`) | Validado contra clientes que rechazan GTC con `EAP-NAK` |
+| Comportamiento sobre familias concretas de hardware víctima | **En curso** — no documentado por dispositivo todavía |
 | Despliegue en armv7 (Pi 3/4) | **No** validado — `install.sh` avisa pero no aborta |
 | Despliegue en otras distros (Ubuntu, Kali, Debian estable) | **No** validado |
 
