@@ -1,6 +1,6 @@
 
 #!/bin/bash
-# reset.sh — Limpieza total antes de arrancar PatataWiFi
+# reset.sh: Limpieza total antes de arrancar PatataWiFi
 # Mata todo, resetea interfaces, libera puertos
 
 echo "[+] Matando tmux..."

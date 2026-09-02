@@ -3,7 +3,7 @@
 Los dos scripts de este directorio son **precursores manuales** de los
 servicios `systemd` que orquestan el laboratorio. Conservan valor durante
 desarrollo y debugging porque pueden ejecutarse con `sudo` en línea y dan
-salida visible en tiempo real (cosa que los `tfg-*.service` no — su salida
+salida visible en tiempo real (cosa que los `tfg-*.service` no: su salida
 va a `journalctl`).
 
 ## `reset.sh`
@@ -55,7 +55,7 @@ Evil Twin en `wlan1`.
 - `reset.sh` usa `sudo` internamente. Si lo ejecutas ya como root, los
   `sudo` adicionales son no-ops.
 - `start-todo.sh` usa `set -e`: cualquier paso que falle aborta el resto.
-  Esto facilita identificar el primer punto de fallo, pero es estricto —
+  Esto facilita identificar el primer punto de fallo, pero es estricto:
   prefiera `tfg-*.service` para arranque automático tolerante a fallos
   transitorios.
 - Ninguno de los dos scripts es invocado por `install.sh`. Se copian al

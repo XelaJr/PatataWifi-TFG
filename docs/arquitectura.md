@@ -20,13 +20,13 @@ el operador del laboratorio usa el de gestión).
                                 │  Raspberry Pi 5                          │
                                 │                                          │
   [Dispositivo víctima]         │  ┌────────────────────────────────────┐  │
-        │                       │  │ wlan0 — Broadcom BCM4345C0 (int.)  │  │
+        │                       │  │ wlan0 - Broadcom BCM4345C0 (int.)  │  │
         │                       │  │ AP: PatataWiFi_mgmt                │  │
         │                       │  │ WPA2-PSK · canal 1 · 172.31.0.1/24 │  │
         │                       │  └────────────────────────────────────┘  │
         │  probe Request        │                                          │
         │  ───────────────────► │  ┌────────────────────────────────────┐  │
-        │  ◄─── beacon          │  │ wlan1 — Alfa AWUS036ACM MT7612U    │  │
+        │  ◄─── beacon          │  │ wlan1 - Alfa AWUS036ACM MT7612U    │  │
         │       eduroam-tfg     │  │ AP: eduroam-tfg                    │  │
         │                       │  │ WPA2-EAP · canal 6 · 10.0.0.1/24   │  │
         │  EAP/PEAP Identity    │  └────────────────────────────────────┘  │
@@ -58,7 +58,7 @@ el inner EAP propuesto por el RADIUS:
 2. **Cliente acepta cert + rechaza GTC con `EAP-NAK`**: fallback
    automático del servidor a MSCHAPv2 → hash NETNTLM capturado,
    crackeable offline (`mschap: <user> / <hash>`). El cliente recibe
-   `Access-Reject` y NO se conecta — pero la credencial queda en disco.
+   `Access-Reject` y NO se conecta, pero la credencial queda en disco.
 3. **Cliente con CA pinning estricto rechaza el cert TLS exterior**:
    ningún paquete EAP interno llega al servidor → **sin captura**. Es
    la única configuración del cliente que mitiga el ataque.
@@ -165,8 +165,8 @@ Con GTC como tipo inicial:
   completa el 4-way handshake WPA2 y queda asociado al rogue AP,
   abriendo la puerta a MITM total.
 - Si el cliente lo rechaza con `EAP-NAK` proponiendo otro inner EAP,
-  FreeRADIUS **automáticamente** cambia al tipo propuesto — típicamente
-  MSCHAPv2 — porque los módulos `gtc { }` y `mschapv2 { }` están ambos
+  FreeRADIUS **automáticamente** cambia al tipo propuesto (típicamente
+  MSCHAPv2) porque los módulos `gtc { }` y `mschapv2 { }` están ambos
   enabled. Resultado: hash NETNTLM capturado, idéntico al escenario
   previo al downgrade.
 
@@ -179,7 +179,7 @@ anterior**.
 Limitación importante: el downgrade afecta sólo al inner EAP,
 **no al outer PEAP/TLS**. Si el cliente rechaza el certificado del
 RADIUS antes de abrir el túnel (CA pinning estricto del perfil
-eduroam CAT), no hay nada que capturar — ni hash ni password. El
+eduroam CAT), no hay nada que capturar: ni hash ni password. El
 ataque queda neutralizado por completo. Esta es, por diseño, la
 mitigación recomendada en la documentación oficial de eduroam.
 
@@ -189,7 +189,7 @@ PatataWiFi orquesta `hostapd` + `dnsmasq` + `radiusd` + `tail -f` de los logs
 en una sesión `tmux` con 5 paneles. Permite operación interactiva durante el
 desarrollo (se hace `tmux attach -t PatataWifi_Hostapd` y se ve todo en
 tiempo real) y simultáneamente sirve como mecanismo de "lanzamiento en
-background" — `tmux -d` desacopla la sesión del proceso padre, así que
+background": `tmux -d` desacopla la sesión del proceso padre, así que
 `tfg-attack.service` puede retornar mientras los daemons siguen vivos.
 
 ## Tablas de rutas y archivos
@@ -203,4 +203,4 @@ background" — `tmux -d` desacopla la sesión del proceso padre, así que
 | Binario hostapd | Construido desde `w1.fi/releases/hostapd-2.6.tar.gz` | `/root/patatawifi/hostapd/hostapd` |
 | Config FreeRADIUS-WPE | Paquete `freeradius-wpe` (Kali) | `/etc/freeradius-wpe/3.0/` (con 3 parches: radiusd.conf, eap, eap-gtc-downgrade) |
 | Certificados RADIUS | Generados por `make bootstrap` | `/etc/freeradius-wpe/3.0/certs/` |
-| Symlink lazo | — | `/root/patatawifi/radiuscfg/default → /etc/freeradius-wpe/3.0` |
+| Symlink lazo | - | `/root/patatawifi/radiuscfg/default → /etc/freeradius-wpe/3.0` |

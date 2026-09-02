@@ -1,15 +1,15 @@
-# TFG Evil Twin — Educational lab on eduroam
+# TFG Evil Twin: Educational lab on eduroam
 
 **English** · [Español](README.es.md)
 
 > 🏅 **This thesis was awarded the top grade: 10 out of 10.**
 
 > ### 📄 Full thesis
-> The complete 112-page thesis behind this lab — context, state of the
-> art, design decisions, per-device results and conclusions — is included as
+> The complete 112-page thesis behind this lab (context, state of the
+> art, design decisions, per-device results and conclusions) is included as
 > **[`tfg.pdf`](tfg.pdf)** *(Spanish)*.
 
-> ## ⚠️ EDUCATIONAL USE — CLOSED LAB ONLY ⚠️
+> ## ⚠️ EDUCATIONAL USE - CLOSED LAB ONLY ⚠️
 >
 > This code accompanies the **Bachelor's thesis (TFG) of Alejandro Cañadas
 > Fleury** (BSc in Computer Engineering, **Universidad Loyola Andalucía**). It
@@ -123,7 +123,7 @@ Full flow, design rationale and the extended diagram in
 > **Note on `patatas333`:** the password for the `PatataWiFi_mgmt` management
 > network is inherited from the upstream project
 > [PatataWiFi](https://github.com/jesux/PatataWiFiEnterprise). **It is not a
-> secret** — it is the lab default. Edit `hostapd-mgmt/mgmt.conf` before running
+> secret**: it is the lab default. Edit `hostapd-mgmt/mgmt.conf` before running
 > `install.sh` to change it.
 
 ## Validation status
@@ -134,14 +134,14 @@ Full flow, design rationale and the extended diagram in
 | Automatic startup after reboot | Validated (~30 s) |
 | Plaintext password capture via EAP-GTC (`pap:` line in `freeradius-server-wpe.log`) | Validated against clients that accept GTC |
 | NETNTLM hash capture via MSCHAPv2 fallback (`mschap:` line) | Validated against clients that reject GTC with `EAP-NAK` |
-| Behaviour on specific victim-hardware families | **Ongoing** — not documented per device yet |
-| Deployment on armv7 (Pi 3/4) | **Not** validated — `install.sh` warns but does not abort |
+| Behaviour on specific victim-hardware families | **Ongoing** (not documented per device yet) |
+| Deployment on armv7 (Pi 3/4) | **Not** validated (`install.sh` warns but does not abort) |
 | Deployment on other distros (Ubuntu, Kali, Debian stable) | **Not** validated |
 
 ## Full thesis
 
-The complete Bachelor's thesis (memoria) — context, state of the art, design
-decisions, per-device results and conclusions — is included as
+The complete Bachelor's thesis (memoria) (context, state of the art, design
+decisions, per-device results and conclusions) is included as
 [**`tfg.pdf`**](tfg.pdf) (112 pages, Spanish).
 
 *Cañadas Fleury, A. (2026). «Plataforma portable sobre Raspberry Pi para

@@ -48,7 +48,7 @@ sudo apt-get install -y -t kali-rolling freeradius-wpe
 ```
 
 Esto trae como dependencias `freeradius-common`, `freeradius-config`,
-`freeradius-utils`, `libfreeradius3` desde **Debian** (no Kali — el pin lo
+`freeradius-utils`, `libfreeradius3` desde **Debian** (no Kali, el pin lo
 asegura), y `freeradius-wpe` desde Kali.
 
 Verificación:
@@ -73,10 +73,10 @@ readlink /usr/sbin/radiusd
 Ver [`README.md`](README.md) en este directorio para el detalle. Resumen:
 
 ```bash
-# radiusd.conf — comentar user/group
+# radiusd.conf: comentar user/group
 sudo patch -p1 -d /etc/freeradius-wpe/3.0 < radiusd.conf.patch
 
-# mods-enabled/eap — reemplazar symlink + parchear paths de certs
+# mods-enabled/eap: reemplazar symlink + parchear paths de certs
 sudo rm /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo cp /etc/freeradius-wpe/3.0/mods-available/eap /etc/freeradius-wpe/3.0/mods-enabled/eap
 sudo patch -p1 -d /etc/freeradius-wpe/3.0 < eap.patch
@@ -106,9 +106,9 @@ index.txt  serial  passwords.mk
 
 Antes del bootstrap, edite:
 
-- **`ca.cnf`** — campos `[CA_default]` y `[req_distinguished_name]`. Cambie
+- **`ca.cnf`**: campos `[CA_default]` y `[req_distinguished_name]`. Cambie
   `CN`, `O`, `emailAddress` para que el certificado CA tenga su nombre.
-- **`server.cnf`** — análogo para el cert del servidor RADIUS. El campo
+- **`server.cnf`**: análogo para el cert del servidor RADIUS. El campo
   `CN` es el que el cliente ve.
 
 Por defecto:
@@ -161,7 +161,7 @@ sudo tail -F /root/patatawifi/logs/PatataWifi_Hostapd/auth-detail
 ```bash
 # El servicio del paquete NO se usa en este lab (PatataWiFi lanza su propio radiusd):
 sudo systemctl is-active freeradius
-# inactive  — correcto
+# inactive  (correcto)
 
 # El que importa es el process spawn dentro de tfg-attack:
 ps -ef | grep radiusd

@@ -88,7 +88,7 @@ también resuelve esto.
 
 **Síntoma:** el cliente ve el SSID `eduroam-tfg`, intenta conectarse y
 rápidamente da un error genérico de tipo "No se puede conectar a la red" o
-similar — **sin mostrar diálogo del tipo "Continuar de todos modos /
+similar, **sin mostrar diálogo del tipo "Continuar de todos modos /
 Cancelar" ante un certificado desconocido**.
 
 **Causa: NO es un bug.** Es el comportamiento esperado cuando el supplicant
@@ -103,7 +103,7 @@ de la del FreeRADIUS-WPE del laboratorio. Sucede típicamente cuando:
   sin pedir intervención al usuario.
 
 **Impacto en la captura:** en este escenario el cliente cierra la sesión
-en el outer PEAP/TLS — **antes de abrir el túnel** — y por tanto **no se
+en el outer PEAP/TLS (**antes de abrir el túnel**) y por tanto **no se
 genera ninguna entrada** en `freeradius-server-wpe.log`. El log de
 `hostapd` (vía `journalctl -u tfg-attack`) sí muestra ciclos repetidos de
 `authentication failed - EAP type: 25 (PEAP)` con la MAC del cliente.

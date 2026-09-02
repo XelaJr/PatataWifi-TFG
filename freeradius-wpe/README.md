@@ -83,7 +83,7 @@ posibles según el cliente:
 |---|---|---|
 | Acepta el cert + acepta EAP-GTC | Envía la password literal dentro del túnel TLS | **Password en claro** en `freeradius-server-wpe.log` (línea `pap: …`) + conexión completa al rogue AP (WPE conoce la password → genera MSK válida → 4-way handshake WPA2 completa) |
 | Acepta el cert + rechaza GTC vía `EAP-NAK` proponiendo MSCHAPv2 | El servidor cambia automáticamente a MSCHAPv2 (los módulos `gtc { }` y `mschapv2 { }` están ambos enabled en el archivo `eap`) | **Hash NETNTLM** crackeable offline + cliente recibe `Access-Reject` (WPE no conoce la password real para regenerar MSK válida → el 4-way handshake nunca completa) |
-| CA pinning estricto: rechaza el certificado TLS exterior | Ni siquiera abre el túnel PEAP — abandona en el outer | Sin captura — el ataque NO funciona en este escenario. Es la mitigación recomendada por eduroam (perfil CAT con CA legítima fijada). |
+| CA pinning estricto: rechaza el certificado TLS exterior | Ni siquiera abre el túnel PEAP, abandona en el outer | Sin captura: el ataque NO funciona en este escenario. Es la mitigación recomendada por eduroam (perfil CAT con CA legítima fijada). |
 
 El fallback GTC → MSCHAPv2 es automático y nativo de FreeRADIUS:
 cuando el cliente envía `EAP-NAK` con tipo 26 (MSCHAPv2), el módulo
@@ -91,7 +91,7 @@ EAP busca un handler para ese tipo y lo encuentra (`mschapv2 { }` no
 está comentado).
 
 **Ojo:** este patch sólo activa el downgrade *interno* (inner EAP).
-No afecta al outer EAP-PEAP — que sigue siendo PEAP/TLS — ni al
+No afecta al outer EAP-PEAP (que sigue siendo PEAP/TLS) ni al
 certificado del servidor. Un cliente con CA pinning legítimo
 seguirá rechazando el cert auto-firmado del RADIUS y no
 generará captura alguna.
@@ -120,7 +120,7 @@ sudo make -C /etc/freeradius-wpe/3.0/certs bootstrap
 ```
 
 Esto genera `ca.pem`, `ca.key`, `server.pem`, `server.key`, `client.*` y
-demás material — `notAfter` ~1 año desde la generación. Ver
+demás material: `notAfter` ~1 año desde la generación. Ver
 [`install-notes.md`](install-notes.md) y
 [`docs/troubleshooting.md`](../docs/troubleshooting.md) (sección "Certificados expirados")
 para regeneración y personalización del CN.

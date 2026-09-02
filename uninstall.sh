@@ -1,5 +1,5 @@
 #!/bin/bash
-# uninstall.sh — Reversión del despliegue TFG Evil Twin
+# uninstall.sh: Reversión del despliegue TFG Evil Twin
 #
 # Conservador: elimina automáticamente sólo los artefactos del laboratorio en
 # /etc/systemd/system y /usr/local/bin. Pregunta interactivamente antes de tocar

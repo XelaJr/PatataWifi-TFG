@@ -1,12 +1,12 @@
-# TFG Evil Twin — Laboratorio educativo sobre eduroam
+# TFG Evil Twin: Laboratorio educativo sobre eduroam
 
 [English](README.md) · **Español**
 
 > 🏅 **Este TFG obtuvo la máxima calificación: 10 sobre 10.**
 
 > ### 📄 Memoria completa
-> La memoria completa del TFG (112 páginas) — contexto, estado del arte,
-> decisiones de diseño, resultados por dispositivo y conclusiones — está incluida
+> La memoria completa del TFG (112 páginas) (contexto, estado del arte,
+> decisiones de diseño, resultados por dispositivo y conclusiones) está incluida
 > como **[`tfg.pdf`](tfg.pdf)**.
 
 > ## ⚠️ USO EDUCATIVO EN LABORATORIO CERRADO ÚNICAMENTE ⚠️
@@ -123,7 +123,7 @@ Detalles completos del flujo, motivaciones de diseño y diagrama extendido en
 
 > **Nota sobre `patatas333`:** la contraseña de la red de gestión `PatataWiFi_mgmt`
 > está heredada del proyecto upstream [PatataWiFi](https://github.com/jesux/PatataWiFiEnterprise).
-> **No es un secreto** — es el valor por defecto del laboratorio. Edite
+> **No es un secreto**: es el valor por defecto del laboratorio. Edite
 > `hostapd-mgmt/mgmt.conf` antes de ejecutar `install.sh` si desea personalizarla.
 
 ## Estado de validación
@@ -134,14 +134,14 @@ Detalles completos del flujo, motivaciones de diseño y diagrama extendido en
 | Arranque automático tras reboot | Validado (~30 s) |
 | Captura de password en claro vía EAP-GTC (línea `pap:` en `freeradius-server-wpe.log`) | Validado contra clientes que aceptan GTC |
 | Captura de hash NETNTLM vía fallback MSCHAPv2 (línea `mschap:`) | Validado contra clientes que rechazan GTC con `EAP-NAK` |
-| Comportamiento sobre familias concretas de hardware víctima | **En curso** — no documentado por dispositivo todavía |
-| Despliegue en armv7 (Pi 3/4) | **No** validado — `install.sh` avisa pero no aborta |
+| Comportamiento sobre familias concretas de hardware víctima | **En curso** (no documentado por dispositivo todavía) |
+| Despliegue en armv7 (Pi 3/4) | **No** validado (`install.sh` avisa pero no aborta) |
 | Despliegue en otras distros (Ubuntu, Kali, Debian estable) | **No** validado |
 
 ## Memoria completa
 
-La memoria completa del Trabajo Fin de Grado — contexto, estado del arte,
-decisiones de diseño, resultados por dispositivo y conclusiones — está incluida
+La memoria completa del Trabajo Fin de Grado (contexto, estado del arte,
+decisiones de diseño, resultados por dispositivo y conclusiones) está incluida
 como [**`tfg.pdf`**](tfg.pdf) (112 páginas).
 
 *Cañadas Fleury, A. (2026). «Plataforma portable sobre Raspberry Pi para

@@ -160,7 +160,7 @@ perfil eduroam instalado):
 - **Cliente acepta el cert + rechaza GTC con `EAP-NAK`**: el servidor
   cae automáticamente a MSCHAPv2 y captura el **hash NETNTLM** (línea
   `mschap:`). El cliente recibe `Access-Reject` y NO se conecta, pero
-  la credencial queda en disco para crack offline — ver
+  la credencial queda en disco para crack offline; ver
   [`docs/analisis-offline.md`](docs/analisis-offline.md).
 - **Cliente con CA pinning estricto rechaza el cert exterior**: no se
   abre el túnel PEAP. **Sin captura.** Es la mitigación recomendada

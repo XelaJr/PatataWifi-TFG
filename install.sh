@@ -1,12 +1,12 @@
 #!/bin/bash
-# install.sh — Despliegue automatizado del laboratorio Evil Twin eduroam
+# install.sh: Despliegue automatizado del laboratorio Evil Twin eduroam
 #
 # Convierte una Raspberry Pi 5 con Raspberry Pi OS 64-bit recién instalado en
 # un laboratorio reproducible con dos puntos de acceso (PatataWiFi_mgmt en wlan0
 # + eduroam-tfg en wlan1) y servicios systemd encadenados de arranque automático.
 #
 # Uso:           sudo ./install.sh
-# Re-ejecutable: sí — usa patch --forward y comprobaciones de estado para ser idempotente.
+# Re-ejecutable: sí, usa patch --forward y comprobaciones de estado para ser idempotente.
 
 set -euo pipefail
 

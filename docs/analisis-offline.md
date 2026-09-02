@@ -2,15 +2,15 @@
 
 El laboratorio captura **dos tipos de credenciales** dependiendo del
 comportamiento del cliente en el inner EAP de PEAP (ver
-[`arquitectura.md`](arquitectura.md) §5 — downgrade GTC):
+[`arquitectura.md`](arquitectura.md) §5, downgrade GTC):
 
 | Cliente | Captura | Análisis |
 |---|---|---|
-| Acepta EAP-GTC | **Password en claro** (línea `pap:` en el log) | Ninguno — ya tienes la credencial |
+| Acepta EAP-GTC | **Password en claro** (línea `pap:` en el log) | Ninguno (ya tienes la credencial) |
 | Rechaza GTC, cae a MSCHAPv2 | **Hash NETNTLM** (línea `mschap:` en el log) | Crack offline (este documento) |
 | Rechaza el cert TLS exterior | Nada | El ataque NO funciona contra este cliente |
 
-Este documento cubre el **segundo caso** — recuperar la contraseña a
+Este documento cubre el **segundo caso**: recuperar la contraseña a
 partir del hash MSCHAPv2 capturado. El primer caso es trivial: la
 password ya está en el log.
 
@@ -84,7 +84,7 @@ grep -E '^[^:]+::[0-9a-f]{16}:[0-9a-f]{48}:[0-9a-f]{32}' \
 ## Cracking con hashcat
 
 ```bash
-# Diccionario (ej.: rockyou.txt — descomprimir antes)
+# Diccionario (ej.: rockyou.txt, descomprimir antes)
 hashcat -m 5500 -a 0 hashes-5500.txt /usr/share/wordlists/rockyou.txt
 
 # Máscara: 8 chars alfanuméricos minúsculas
@@ -114,7 +114,7 @@ análisis offline se hace fuera de la Pi.**
 
 Tomar como cota superior la fortaleza de la contraseña del usuario, no la
 del algoritmo: MSCHAPv2 con NT-hash es esencialmente DES de 56 bits en tres
-operaciones — completamente recuperable con hardware moderado si la
+operaciones, completamente recuperable con hardware moderado si la
 contraseña es débil.
 
 ## Herramientas opcionales (no instaladas por defecto)
@@ -122,16 +122,16 @@ contraseña es débil.
 Para análisis avanzado pueden serle útiles:
 
 ```bash
-# aircrack-ng — análisis de PCAPs WiFi, no estrictamente necesario aquí
+# aircrack-ng: análisis de PCAPs WiFi, no estrictamente necesario aquí
 sudo apt install aircrack-ng
 
-# hcxtools / hcxdumptool — conversores y dumpers de hash
+# hcxtools / hcxdumptool: conversores y dumpers de hash
 sudo apt install hcxtools hcxdumptool
 
-# asleap — recuperación clásica de LEAP/PPTP/MSCHAPv2
+# asleap: recuperación clásica de LEAP/PPTP/MSCHAPv2
 sudo apt install asleap
 
-# john (con jumbo) — alternativa a hashcat con soporte de MSCHAPv2
+# john (con jumbo): alternativa a hashcat con soporte de MSCHAPv2
 sudo apt install john
 ```
 

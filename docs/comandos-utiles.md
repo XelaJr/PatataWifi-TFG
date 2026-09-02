@@ -33,11 +33,11 @@ sudo tail -F /var/log/freeradius-wpe/freeradius-server-wpe.log
 ### Filtros separados (terminal split)
 
 ```bash
-# Terminal 1 — passwords en claro (clientes que aceptan EAP-GTC)
+# Terminal 1: passwords en claro (clientes que aceptan EAP-GTC)
 sudo tail -F /var/log/freeradius-wpe/freeradius-server-wpe.log \
   | grep --line-buffered -A2 '^pap:'
 
-# Terminal 2 — hashes NETNTLM (clientes que rechazan GTC y caen a MSCHAPv2)
+# Terminal 2: hashes NETNTLM (clientes que rechazan GTC y caen a MSCHAPv2)
 sudo tail -F /var/log/freeradius-wpe/freeradius-server-wpe.log \
   | grep --line-buffered -A4 '^mschap:'
 ```

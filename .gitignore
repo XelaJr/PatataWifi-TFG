@@ -60,7 +60,6 @@
 *.token
 secrets/
 
-# Brief privado del autor (contiene credenciales y notas internas — NO publicar)
 BRIEF.md
 
 # Configuración local de Claude Code (allowlist de permisos del autor)
