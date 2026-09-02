@@ -1,6 +1,6 @@
 # Guía de instalación
 
-> Recordatorio: [`README.md`](README.md) contiene el disclaimer legal y el
+> Recordatorio: [`README.es.md`](README.es.md) contiene el disclaimer legal y el
 > contexto del proyecto. Léalo antes de continuar.
 
 ## Requisitos previos
@@ -25,8 +25,8 @@ ip link show wlan0 wlan1   # ambas presentes (Alfa conectada por USB)
 ## Instalación automática (recomendada)
 
 ```bash
-git clone https://github.com/xelajr/tfg-eduroam-eviltwin.git
-cd tfg-eduroam-eviltwin
+git clone https://github.com/XelaJr/PatataWifi-TFG.git
+cd PatataWifi-TFG
 sudo ./install.sh
 sudo reboot
 ```

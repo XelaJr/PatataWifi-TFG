@@ -48,7 +48,7 @@ ip addr show wlan0   # debe mostrar 172.31.0.1
 ip addr show wlan1   # debe mostrar 10.0.0.1
 
 # Si están iguales, el parche está mal aplicado. Re-ejecute:
-cd ~/tfg-eduroam-eviltwin
+cd ~/PatataWifi-TFG
 sudo ./install.sh    # idempotente, re-aplica los parches
 ```
 

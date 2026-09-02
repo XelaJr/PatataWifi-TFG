@@ -1,87 +1,93 @@
-# TFG Evil Twin — Laboratorio educativo sobre eduroam
+# TFG Evil Twin — Educational lab on eduroam
 
-> ## ⚠️ USO EDUCATIVO EN LABORATORIO CERRADO ÚNICAMENTE ⚠️
+**English** · [Español](README.es.md)
+
+> ### 📄 Full thesis
+> The complete 112-page thesis (memoria) behind this lab — context, state of the
+> art, design decisions, per-device results and conclusions — is included as
+> **[`tfg.pdf`](tfg.pdf)** *(Spanish)*.
+
+> ## ⚠️ EDUCATIONAL USE — CLOSED LAB ONLY ⚠️
 >
-> Este código está asociado al **Trabajo Fin de Grado de Alejandro Cañadas
-> Fleury** (Grado en Ingeniería Informática, **Universidad Loyola Andalucía**).
-> Reproduce, con fines didácticos y en un entorno aislado del autor, el
-> ataque *Evil Twin* contra redes WPA2-Enterprise de tipo `eduroam`.
+> This code accompanies the **Bachelor's thesis (TFG) of Alejandro Cañadas
+> Fleury** (BSc in Computer Engineering, **Universidad Loyola Andalucía**). It
+> reproduces, for teaching purposes and inside the author's isolated lab, the
+> *Evil Twin* attack against `eduroam`-style WPA2-Enterprise networks.
 >
-> **El uso contra redes ajenas, o sin consentimiento explícito por escrito**
-> del operador legítimo de la red y de sus usuarios, está tipificado en el
-> **Artículo 197 del Código Penal español** (descubrimiento y revelación de
-> secretos) y constituye **delito con penas de prisión**.
+> **Using it against networks you do not own, or without explicit written
+> consent** from the legitimate network operator *and* its users, is a criminal
+> offence in Spain under **Article 197 of the Criminal Code** (discovery and
+> disclosure of secrets), punishable with prison.
 >
-> **El autor no se responsabiliza del uso indebido de este código.**
+> **The author accepts no responsibility for misuse of this code.**
 
 ---
 
-## Acerca del proyecto
+## About the project
 
-`eduroam` es la federación inalámbrica de la red académica internacional. Su
-seguridad reposa en WPA2-Enterprise con autenticación 802.1X/EAP: el cliente
-entrega credenciales corporativas al servidor RADIUS de su propia institución a
-través de un túnel TLS. Si el cliente no valida correctamente el certificado
-del servidor RADIUS (caso muy común en dispositivos personales mal configurados),
-un atacante puede levantar un punto de acceso con el mismo SSID y un servidor
-RADIUS bajo su control, capturando las credenciales del usuario en una forma
-susceptible de uso directo o de ataque offline.
+`eduroam` is the international academic wireless federation. Its security rests
+on WPA2-Enterprise with 802.1X/EAP authentication: the client hands its
+corporate credentials to its own institution's RADIUS server through a TLS
+tunnel. If the client does not correctly validate the RADIUS server's
+certificate (very common on poorly-configured personal devices), an attacker can
+stand up an access point with the same SSID and a RADIUS server under their
+control, capturing the user's credentials in a form that is directly usable or
+susceptible to offline attack.
 
-Este repositorio convierte una Raspberry Pi 5 limpia en un laboratorio
-auto-arrancable que materializa ese escenario sobre dos radios físicas: la
-interna de la Pi 5 (BCM4345C0) levanta una red WPA2-PSK de gestión, y un Alfa
-AWUS036ACM (MT7612U) levanta el AP malicioso `eduroam-tfg` con
-**FreeRADIUS-WPE 3.x** como backend de captura. Todo el ciclo de vida
-(*cleanup → mgmt → attack*) se orquesta vía tres servicios `systemd` que
-arrancan ~30 s tras el POST.
+This repository turns a clean Raspberry Pi 5 into a self-booting lab that
+materialises that scenario over two physical radios: the Pi 5's internal radio
+(BCM4345C0) serves a WPA2-PSK management network, and an Alfa AWUS036ACM
+(MT7612U) serves the rogue `eduroam-tfg` AP with **FreeRADIUS-WPE 3.x** as the
+capture backend. The whole lifecycle (*cleanup → mgmt → attack*) is orchestrated
+by three `systemd` services that start ~30 s after POST.
 
-El RADIUS está configurado con **downgrade attack a EAP-GTC** en el inner
-PEAP (ver [`docs/arquitectura.md`](docs/arquitectura.md) §5). Resultado
-según el comportamiento del cliente:
+The RADIUS server is configured with an **inner-PEAP downgrade to EAP-GTC** (see
+[`docs/arquitectura.md`](docs/arquitectura.md) §5). Depending on client
+behaviour:
 
-- Cliente que acepta el certificado del RADIUS y acepta EAP-GTC →
-  **password en claro** capturada + conexión completa al rogue AP.
-- Cliente que acepta el certificado pero rechaza GTC vía `EAP-NAK`
-  proponiendo MSCHAPv2 → fallback automático del servidor a MSCHAPv2 →
-  **hash NETNTLM** capturado, crackeable offline.
-- Cliente con CA pinning estricto que rechaza el certificado del RADIUS
-  en el outer PEAP/TLS → no se abre el túnel → **ninguna captura**. Es
-  la única configuración del cliente que mitiga por completo el ataque.
+- Client that accepts the RADIUS certificate and accepts EAP-GTC →
+  **plaintext password** captured + full connection to the rogue AP.
+- Client that accepts the certificate but rejects GTC via `EAP-NAK`,
+  proposing MSCHAPv2 → automatic server fallback to MSCHAPv2 →
+  **NETNTLM hash** captured, crackable offline.
+- Client with strict CA pinning that rejects the RADIUS certificate in
+  the outer PEAP/TLS → the tunnel never opens → **no capture**. This is
+  the only client configuration that fully mitigates the attack.
 
-## Hardware probado
+## Hardware tested
 
-| Componente | Modelo | Notas |
+| Component | Model | Notes |
 |---|---|---|
-| Plataforma | Raspberry Pi 5 (8 GB) | aarch64 / kernel 6.12.x |
-| Radio interna | Broadcom BCM4345C0 (wlan0) | usa `firmware-brcm80211` |
-| Radio externa | Alfa AWUS036ACM (wlan1) | MediaTek MT7612U, `firmware-mediatek` |
-| Cliente víctima | Cualquier dispositivo con stack 802.1X/EAP que se asocie a `eduroam-tfg`. El comportamiento concreto (captura GTC plain, fallback MSCHAPv2 o rechazo TLS) depende de la configuración del supplicant y del perfil eduroam instalado, no del fabricante. Pruebas en hardware concreto en curso. |
+| Platform | Raspberry Pi 5 (8 GB) | aarch64 / kernel 6.12.x |
+| Internal radio | Broadcom BCM4345C0 (wlan0) | uses `firmware-brcm80211` |
+| External radio | Alfa AWUS036ACM (wlan1) | MediaTek MT7612U, `firmware-mediatek` |
+| Victim client | Any device with an 802.1X/EAP stack that associates to `eduroam-tfg`. The specific outcome (plaintext GTC, MSCHAPv2 fallback, or TLS rejection) depends on the supplicant configuration and the installed eduroam profile, not on the manufacturer. Testing on specific hardware is ongoing. |
 
-> El AWUS036ACM se requiere porque la radio interna no permite, sobre el driver
-> Broadcom, el modo AP con WPA2-Enterprise + multi-BSSID simultáneo. Ver
-> [`docs/arquitectura.md`](docs/arquitectura.md) para el detalle.
+> The AWUS036ACM is required because, on the Broadcom driver, the internal radio
+> does not allow AP mode with WPA2-Enterprise + multi-BSSID simultaneously. See
+> [`docs/arquitectura.md`](docs/arquitectura.md) for the detail.
 
 ## Quickstart
 
 ```bash
-git clone https://github.com/xelajr/tfg-eduroam-eviltwin.git
-cd tfg-eduroam-eviltwin
+git clone https://github.com/XelaJr/PatataWifi-TFG.git
+cd PatataWifi-TFG
 sudo ./install.sh
 sudo reboot
-sudo systemctl is-active tfg-cleanup tfg-mgmt tfg-attack   # tras boot
+sudo systemctl is-active tfg-cleanup tfg-mgmt tfg-attack   # after boot
 ```
 
-Pasados ~30 segundos tras el primer arranque, ambos APs deben estar al aire y
-visibles desde un dispositivo cliente. El log de captura está en
+About ~30 seconds after the first boot, both APs should be on the air and
+visible from a client device. The capture log lives at
 `/var/log/freeradius-wpe/freeradius-server-wpe.log`.
 
-## Arquitectura (resumen)
+## Architecture (summary)
 
 ```
                        ┌────────────────────────────┐
                        │ Raspberry Pi 5             │
                        │                            │
-   [Cliente víctima]   │  ┌──────────────────────┐  │
+   [Victim client]     │  ┌──────────────────────┐  │
         ↓ probe        │  │ wlan0 (BCM4345C0)    │  │ → PatataWiFi_mgmt   (PSK, ch 1)
         ↓ eduroam SSID │  │ 172.31.0.1/24        │  │
                        │  └──────────────────────┘  │
@@ -96,63 +102,74 @@ visibles desde un dispositivo cliente. El log de captura está en
                        └────────────────────────────┘
 ```
 
-Detalles completos del flujo, motivaciones de diseño y diagrama extendido en
+Full flow, design rationale and the extended diagram in
 [`docs/arquitectura.md`](docs/arquitectura.md).
 
-## Configuración por defecto
+## Default configuration
 
-| Parámetro | Valor por defecto | Archivo donde se cambia |
+| Parameter | Default | File to change it |
 |---|---|---|
-| SSID red de gestión | `PatataWiFi_mgmt` | `hostapd-mgmt/mgmt.conf` |
-| PSK red de gestión | `patatas333` | `hostapd-mgmt/mgmt.conf` |
-| Canal red de gestión | 1 (2.4 GHz) | `hostapd-mgmt/mgmt.conf` |
-| IP red de gestión (Pi) | `172.31.0.1/24` | `scripts/tfg-mgmt.sh` |
-| SSID Evil Twin | `eduroam-tfg` | `patatawifi-patches/hostapd-freeradius.sh.patch` |
-| Canal Evil Twin | 6 (2.4 GHz) | idem |
-| IP Evil Twin (Pi) | `10.0.0.1/24` | idem |
-| Cert CN (servidor RADIUS) | `Example Server Certificate` | `/etc/freeradius-wpe/3.0/certs/server.cnf` |
+| Management SSID | `PatataWiFi_mgmt` | `hostapd-mgmt/mgmt.conf` |
+| Management PSK | `patatas333` | `hostapd-mgmt/mgmt.conf` |
+| Management channel | 1 (2.4 GHz) | `hostapd-mgmt/mgmt.conf` |
+| Management IP (Pi) | `172.31.0.1/24` | `scripts/tfg-mgmt.sh` |
+| Evil Twin SSID | `eduroam-tfg` | `patatawifi-patches/hostapd-freeradius.sh.patch` |
+| Evil Twin channel | 6 (2.4 GHz) | idem |
+| Evil Twin IP (Pi) | `10.0.0.1/24` | idem |
+| RADIUS cert CN | `Example Server Certificate` | `/etc/freeradius-wpe/3.0/certs/server.cnf` |
 
-> **Nota sobre `patatas333`:** la contraseña de la red de gestión `PatataWiFi_mgmt`
-> está heredada del proyecto upstream [PatataWiFi](https://github.com/jesux/PatataWiFiEnterprise).
-> **No es un secreto** — es el valor por defecto del laboratorio. Edite
-> `hostapd-mgmt/mgmt.conf` antes de ejecutar `install.sh` si desea personalizarla.
+> **Note on `patatas333`:** the password for the `PatataWiFi_mgmt` management
+> network is inherited from the upstream project
+> [PatataWiFi](https://github.com/jesux/PatataWiFiEnterprise). **It is not a
+> secret** — it is the lab default. Edit `hostapd-mgmt/mgmt.conf` before running
+> `install.sh` to change it.
 
-## Estado de validación
+## Validation status
 
-| Componente | Estado |
+| Component | Status |
 |---|---|
-| Despliegue sobre Pi 5 8 GB + AWUS036ACM | Validado |
-| Arranque automático tras reboot | Validado (~30 s) |
-| Captura de password en claro vía EAP-GTC (línea `pap:` en `freeradius-server-wpe.log`) | Validado contra clientes que aceptan GTC |
-| Captura de hash NETNTLM vía fallback MSCHAPv2 (línea `mschap:`) | Validado contra clientes que rechazan GTC con `EAP-NAK` |
-| Comportamiento sobre familias concretas de hardware víctima | **En curso** — no documentado por dispositivo todavía |
-| Despliegue en armv7 (Pi 3/4) | **No** validado — `install.sh` avisa pero no aborta |
-| Despliegue en otras distros (Ubuntu, Kali, Debian estable) | **No** validado |
+| Deployment on Pi 5 8 GB + AWUS036ACM | Validated |
+| Automatic startup after reboot | Validated (~30 s) |
+| Plaintext password capture via EAP-GTC (`pap:` line in `freeradius-server-wpe.log`) | Validated against clients that accept GTC |
+| NETNTLM hash capture via MSCHAPv2 fallback (`mschap:` line) | Validated against clients that reject GTC with `EAP-NAK` |
+| Behaviour on specific victim-hardware families | **Ongoing** — not documented per device yet |
+| Deployment on armv7 (Pi 3/4) | **Not** validated — `install.sh` warns but does not abort |
+| Deployment on other distros (Ubuntu, Kali, Debian stable) | **Not** validated |
 
-## Reconocimientos
+## Full thesis
+
+The complete Bachelor's thesis (memoria) — context, state of the art, design
+decisions, per-device results and conclusions — is included as
+[**`tfg.pdf`**](tfg.pdf) (112 pages, Spanish).
+
+*Cañadas Fleury, A. (2026). «Plataforma portable sobre Raspberry Pi para
+auditoría de redes WPA-Enterprise».* Bachelor's thesis, Universidad Loyola
+Andalucía. Advisors: Jordi García Quintanilla, Raúl Martín Santamaría.
+
+## Acknowledgements
 
 - [**PatataWiFi / PatataWiFiEnterprise**](https://github.com/jesux/PatataWiFiEnterprise),
-  de Jesús Antón ([@jesux](https://github.com/jesux)). Las plantillas de
-  `hostapd`, los scripts `hostapd-freeradius.sh` y `init.sh`, y el patrón de
-  multiplexación con tmux son obra suya.
-- [**FreeRADIUS-WPE**](https://github.com/brad-anton/freeradius-wpe), versión
-  *Wireless Pwn Edition* originalmente publicada por
-  [Joshua Wright](https://github.com/joswr1ght) y mantenida en sus revisiones
-  modernas por el proyecto Kali. Empaquetada en `kali-rolling` como
+  by Jesús Antón ([@jesux](https://github.com/jesux)). The `hostapd` templates,
+  the `hostapd-freeradius.sh` and `init.sh` scripts, and the tmux multiplexing
+  pattern are his work.
+- [**FreeRADIUS-WPE**](https://github.com/brad-anton/freeradius-wpe), the
+  *Wireless Pwn Edition* originally published by
+  [Joshua Wright](https://github.com/joswr1ght) and maintained in its modern
+  revisions by the Kali project. Packaged in `kali-rolling` as
   `freeradius-wpe 3.2.5+dfsg-3kali1`.
 
-## Contribuir
+## Contributing
 
-Issues y pull requests son bienvenidos. Por favor, siga estas pautas:
+Issues and pull requests are welcome. Please follow these guidelines:
 
-- Abra un issue antes de un PR grande para discutir el enfoque.
-- Las contribuciones deben respetar el carácter **educativo** del proyecto:
-  no se aceptarán mejoras orientadas a evasión de detección, ofuscación de
-  identidad, o ampliación del alcance fuera del Art. 197 CP (España).
-- Si su contribución necesita material capturado (PCAP, hashes), redáctelo
-  con datos sintéticos antes de adjuntarlo.
+- Open an issue before a large PR to discuss the approach.
+- Contributions must respect the **educational** character of the project:
+  improvements oriented at detection evasion, identity obfuscation, or expanding
+  the scope beyond Art. 197 CP (Spain) will not be accepted.
+- If your contribution needs captured material (PCAP, hashes), redact it with
+  synthetic data before attaching it.
 
-## Licencia
+## License
 
-[GPL-3.0-or-later](LICENSE). Hereda esta licencia de los componentes upstream
-(PatataWiFi GPL-3.0; FreeRADIUS-WPE GPL-2.0).
+[GPL-3.0-or-later](LICENSE). Inherited from the upstream components (PatataWiFi
+GPL-3.0; FreeRADIUS-WPE GPL-2.0).
