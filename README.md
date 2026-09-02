@@ -2,6 +2,8 @@
 
 **English** · [Español](README.es.md)
 
+> 🏅 **This thesis was awarded the top grade: 10 out of 10.**
+
 > ### 📄 Full thesis
 > The complete 112-page thesis behind this lab — context, state of the
 > art, design decisions, per-device results and conclusions — is included as

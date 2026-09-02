@@ -2,6 +2,8 @@
 
 [English](README.md) · **Español**
 
+> 🏅 **Este TFG obtuvo la máxima calificación: 10 sobre 10.**
+
 > ### 📄 Memoria completa
 > La memoria completa del TFG (112 páginas) — contexto, estado del arte,
 > decisiones de diseño, resultados por dispositivo y conclusiones — está incluida
