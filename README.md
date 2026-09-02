@@ -3,7 +3,7 @@
 **English** · [Español](README.es.md)
 
 > ### 📄 Full thesis
-> The complete 112-page thesis (memoria) behind this lab — context, state of the
+> The complete 112-page thesis behind this lab — context, state of the
 > art, design decisions, per-device results and conclusions — is included as
 > **[`tfg.pdf`](tfg.pdf)** *(Spanish)*.
 
